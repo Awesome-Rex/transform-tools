@@ -33,16 +33,27 @@ namespace REXTools.TransformTools
 
             foreach (Axis i in Vectors.axisDefaultOrder)
             {
-                this.axes.Add(new AxisApplied(i, Vectors.GetAxis(i, axes),/* SpaceVariety.OneSided,*/ space));
+                this.axes.Add(new AxisApplied(i, axes.GetAxis(i),/* SpaceVariety.OneSided,*/ space));
             }
 
             this.space = space;
         }
 
         //Methods
-        public Quaternion ApplyRotation(Quaternion relative)
+
+        //apply
+        public Quaternion ApplyRotation(Quaternion rotation, Quaternion? current = null)
         {
-            Quaternion newRot = relative;
+            Quaternion newRot;
+
+            if (current != null)
+            {
+                newRot = (Quaternion)current;
+            }
+            else
+            {
+                newRot = rotation;
+            }
 
             if (variety == SpaceVariety.OneSided)
             {
@@ -74,9 +85,18 @@ namespace REXTools.TransformTools
             }
             return newRot;
         } //works
-        public Quaternion ApplyRotation(Transform relative)
+        public Quaternion ApplyRotation(Transform relative, Quaternion? current = null)
         {
-            Quaternion newRot = relative.rotation;
+            Quaternion newRot;
+
+            if (current != null)
+            {
+                newRot = (Quaternion)current;
+            }
+            else
+            {
+                newRot = relative.rotation;
+            }
 
             if (variety == SpaceVariety.OneSided)
             {
@@ -107,11 +127,20 @@ namespace REXTools.TransformTools
                 }
             }
             return newRot;
-        } //works probably
+        }
 
-        public Vector3 ApplyPosition(Transform relative)
+        public Vector3 ApplyPosition(Transform relative, Vector3? current = null, float scale = 1)
         {
-            Vector3 newPos = relative.position;
+            Vector3 newPos;
+
+            if (current != null)
+            {
+                newPos = (Vector3)current;
+            }
+            else
+            {
+                newPos = relative.position;
+            }
 
             if (variety == SpaceVariety.OneSided)
             {
@@ -119,7 +148,50 @@ namespace REXTools.TransformTools
                 {
                     if (space == Space.Self)
                     {
-                        newPos += relative.parent.TransformPoint(Vectors.axisDirections[i.axis] * i.units);
+                        newPos += relative.parent.TransformPoint(Vectors.axisDirections[i.axis] * i.units * scale);
+                    }
+                    else
+                    {
+                        newPos += (Vectors.axisDirections[i.axis] * i.units * scale);
+                    }
+                }
+            }
+            else if (variety == SpaceVariety.Mixed)
+            {
+                foreach (AxisApplied i in axes)
+                {
+                    if (i.space == Space.Self)
+                    {
+                        newPos += relative.parent.TransformPoint(Vectors.axisDirections[i.axis] * i.units * scale);
+                    }
+                    else
+                    {
+                        newPos += (Vectors.axisDirections[i.axis] * i.units * scale);
+                    }
+                }
+            }
+            return newPos;
+        } //works probably
+        public Vector3 ApplyPosition(Vector3 position, Quaternion rotation, Vector3 scale, Vector3? current = null)
+        {
+            Vector3 newPos;
+
+            if (current != null)
+            {
+                newPos = (Vector3)current;
+            }
+            else
+            {
+                newPos = position;
+            }
+
+            if (variety == SpaceVariety.OneSided)
+            {
+                foreach (AxisApplied i in axes)
+                {
+                    if (space == Space.Self)
+                    {
+                        newPos += Linking.TransformPoint(Vectors.axisDirections[i.axis] * i.units, position, rotation, scale);
                     }
                     else
                     {
@@ -133,7 +205,7 @@ namespace REXTools.TransformTools
                 {
                     if (i.space == Space.Self)
                     {
-                        newPos += relative.parent.TransformPoint(Vectors.axisDirections[i.axis] * i.units);
+                        newPos += Linking.TransformPoint(Vectors.axisDirections[i.axis] * i.units, position, rotation, scale);
                     }
                     else
                     {
@@ -142,12 +214,37 @@ namespace REXTools.TransformTools
                 }
             }
             return newPos;
-        } //works probably
-
-        public Quaternion ReverseRotation(Quaternion relative)
+        }
+        public Vector3 ApplyPosition(Vector3 position, Quaternion rotation, Vector3? current = null)
         {
-            Quaternion newRot = relative;
+            Vector3 newPos;
 
+            if (current != null)
+            {
+                newPos = (Vector3)current;
+            }
+            else
+            {
+                newPos = position;
+            }
+
+            return ApplyPosition(position, rotation, Vector3.one, newPos);
+        }
+
+
+        //reverse
+        public Quaternion ReverseRotation(Quaternion rotation, Quaternion? current = null)
+        {
+            Quaternion newRot;
+
+            if (current != null)
+            {
+                newRot = (Quaternion)current;
+            }
+            else
+            {
+                newRot = rotation;
+            }
             if (variety == SpaceVariety.OneSided)
             {
                 for (int j = axes.Count; j > 0; j--)
@@ -182,10 +279,18 @@ namespace REXTools.TransformTools
             }
             return newRot;
         } //works
-
-        public Vector3 ReversePosition(Transform relative)
+        public Quaternion ReverseRotation(Transform relative, Quaternion? current = null)
         {
-            Vector3 newPos = relative.position;
+            Quaternion newRot;
+
+            if (current != null)
+            {
+                newRot = (Quaternion)current;
+            }
+            else
+            {
+                newRot = relative.rotation;
+            }
 
             if (variety == SpaceVariety.OneSided)
             {
@@ -193,7 +298,94 @@ namespace REXTools.TransformTools
                 {
                     if (space == Space.Self)
                     {
-                        newPos += relative.parent.TransformPoint(-(Vectors.axisDirections[i.axis] * i.units));
+                        newRot = newRot * Quaternion.Euler(-(Vectors.axisDirections[i.axis] * i.units));
+                    }
+                    else
+                    {
+                        newRot = Quaternion.Euler(-(Vectors.axisDirections[i.axis] * i.units)) * newRot;
+                    }
+                }
+            }
+            else if (variety == SpaceVariety.Mixed)
+            {
+                foreach (AxisApplied i in axes)
+                {
+                    if (space == Space.Self)
+                    {
+                        newRot = newRot * Quaternion.Euler(-(Vectors.axisDirections[i.axis] * i.units));
+                    }
+                    else
+                    {
+                        newRot = Quaternion.Euler(-(Vectors.axisDirections[i.axis] * i.units)) * newRot;
+                    }
+                }
+            }
+            return newRot;
+        }
+
+        public Vector3 ReversePosition(Transform relative, Vector3? current = null, float scale = 1)
+        {
+            Vector3 newPos;
+
+            if (current != null)
+            {
+                newPos = (Vector3)current;
+            }
+            else
+            {
+                newPos = relative.position;
+            }
+
+            if (variety == SpaceVariety.OneSided)
+            {
+                foreach (AxisApplied i in axes)
+                {
+                    if (space == Space.Self)
+                    {
+                        newPos += relative.parent.TransformPoint(-(Vectors.axisDirections[i.axis] * i.units * scale));
+                    }
+                    else
+                    {
+                        newPos += -(Vectors.axisDirections[i.axis] * i.units * scale);
+                    }
+                }
+            }
+            else if (variety == SpaceVariety.Mixed)
+            {
+                foreach (AxisApplied i in axes)
+                {
+                    if (i.space == Space.Self)
+                    {
+                        newPos += relative.parent.TransformPoint(-(Vectors.axisDirections[i.axis] * i.units * scale));
+                    }
+                    else
+                    {
+                        newPos += -(Vectors.axisDirections[i.axis] * i.units * scale);
+                    }
+                }
+            }
+            return newPos;
+        } //works probably
+        public Vector3 ReversePosition(Vector3 position, Quaternion rotation, Vector3 scale, Vector3? current = null)
+        {
+            Vector3 newPos;
+
+            if (current != null)
+            {
+                newPos = (Vector3)current;
+            }
+            else
+            {
+                newPos = position;
+            }
+
+            if (variety == SpaceVariety.OneSided)
+            {
+                foreach (AxisApplied i in axes)
+                {
+                    if (space == Space.Self)
+                    {
+                        newPos += Linking.TransformPoint(-(Vectors.axisDirections[i.axis] * i.units), position, rotation, scale);
                     }
                     else
                     {
@@ -207,7 +399,7 @@ namespace REXTools.TransformTools
                 {
                     if (i.space == Space.Self)
                     {
-                        newPos += relative.parent.TransformPoint(-(Vectors.axisDirections[i.axis] * i.units));
+                        newPos += Linking.TransformPoint(-(Vectors.axisDirections[i.axis] * i.units), position, rotation, scale);
                     }
                     else
                     {
@@ -216,6 +408,32 @@ namespace REXTools.TransformTools
                 }
             }
             return newPos;
-        } //works probably
+        }
+        public Vector3 ReversePosition(Vector3 position, Quaternion rotation, Vector3? current = null)
+        {
+            Vector3 newPos;
+
+            if (current != null)
+            {
+                newPos = (Vector3)current;
+            }
+            else
+            {
+                newPos = position;
+            }
+
+            return ReversePosition(position, rotation, Vector3.one, newPos);
+        }
+
+
+        //simpler methods
+        public Vector3 ApplyPosition(Transform relative, float scale = 1)
+        {
+            return ApplyPosition(relative, null, scale);
+        }
+        public Vector3 ReversePosition(Transform relative, float scale = 1)
+        {
+            return ReversePosition(relative, null, scale);
+        }
     }
 }
