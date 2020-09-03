@@ -11,83 +11,53 @@ namespace REXTools.TransformTools
     [CustomPropertyDrawer(typeof(Vector3Bool))]
     public class Vector3BoolPropertyDrawer : PropertyDrawerPRO
     {
+        private const int totalAxes = 3;
+
+        private const float subLabelSpacing = 4;
+        private const float bottomSpacing = 2;
+
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            if (!property.serializedObject.isEditingMultipleObjects)
+            position.height -= bottomSpacing;
+
+            OnGUIPRO(position, property, label, () =>
             {
-                OnGUIPRO(position, property, label, () =>
-                {
-                    lines = 2f;
+                label = EditorGUI.BeginProperty(position, label, property);
+                
+                Rect contentRect = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
 
-                    //newPosition.width = EditorGUIUtility.labelWidth;
+                DrawPropertyField(contentRect, new GUIContent("X"), property.FindPropertyRelative("x"), 0);
+                DrawPropertyField(contentRect, new GUIContent("Y"), property.FindPropertyRelative("y"), 1);
+                DrawPropertyField(contentRect, new GUIContent("Z"), property.FindPropertyRelative("z"), 2);
+            });
+        }
 
-                    //GUI.Label(newPosition, property.displayName);
+        private void DrawPropertyField(Rect position, GUIContent label, SerializedProperty property, int index)
+        {
+            index = Mathf.Clamp(index, 0, totalAxes - 1);
+            
+            // backup gui settings
+            int indent = EditorGUI.indentLevel;
+            float labelWidth = EditorGUIUtility.labelWidth;
 
-                    //newPosition.width = EditorGUIUtility.fieldWidth / 3f;
-                    //newPosition.x = EditorGUIUtility.labelWidth;
+            // draw properties
 
-                    //newPosition.width = EditorGUIUtility.fieldWidth;
-                    //EditorGUI.IntField(newPosition, 10);
+            float width = (position.width - (totalAxes - 1) * subLabelSpacing) / totalAxes;
+            Rect contentPos = new Rect(position.x + ((width + subLabelSpacing) * index), position.y, width, position.height);
 
-                    ////property.FindPropertyRelative("x").boolValue = GUI.Toggle(newPosition, property.FindPropertyRelative("x").boolValue, "X");
+            EditorGUI.indentLevel = 0;
+            EditorGUIUtility.labelWidth = EditorStyles.label.CalcSize(label).x;
 
-                    //newPosition.x += EditorGUIUtility.fieldWidth / 3f;
+            EditorGUI.PropertyField(contentPos, property, label, true);
+            
+            // restore gui settings
+            EditorGUIUtility.labelWidth = labelWidth;
+            EditorGUI.indentLevel = indent;
+        }
 
-                    //property.FindPropertyRelative("y").boolValue = GUI.Toggle(newPosition, property.FindPropertyRelative("y").boolValue, "Y");
-
-                    //newPosition.x += EditorGUIUtility.fieldWidth / 3f;
-
-                    //property.FindPropertyRelative("z").boolValue = GUI.Toggle(newPosition, property.FindPropertyRelative("z").boolValue, "Z");
-
-
-                    float nameWidth = position.width * .41f;
-
-                    float labelWidth = 12f;
-                    float fieldWidth = ((position.width - nameWidth) / 3f) - labelWidth;
-
-                    SerializedProperty x = property.FindPropertyRelative("x");
-                    SerializedProperty y = property.FindPropertyRelative("y");
-                    SerializedProperty z = property.FindPropertyRelative("z");
-
-                    float posx = position.x;
-
-                    int indent = EditorGUI.indentLevel;
-
-                    EditorGUI.LabelField(new Rect(position.x, position.y, nameWidth, position.height), property.displayName);
-                    posx += nameWidth;
-
-                    // Draw X
-                    EditorGUI.LabelField(new Rect(posx, position.y, labelWidth, position.height), "X");
-                    posx += labelWidth;
-                    property.FindPropertyRelative("x").boolValue = EditorGUI.Toggle(
-                        new Rect(posx, position.y, fieldWidth, position.height), property.FindPropertyRelative("x").boolValue);
-                    posx += fieldWidth;
-
-                    // Y
-                    //EditorGUI.indentLevel = 0;
-                    EditorGUI.LabelField(new Rect(posx, position.y, labelWidth, position.height), "Y");
-                    posx += labelWidth;
-                    property.FindPropertyRelative("y").boolValue = EditorGUI.Toggle(
-                        new Rect(posx, position.y, fieldWidth, position.height), property.FindPropertyRelative("y").boolValue);
-                    posx += fieldWidth;
-
-                    // Z
-                    //EditorGUI.indentLevel = 0;
-                    EditorGUI.LabelField(new Rect(posx, position.y, labelWidth, position.height), "Z");
-                    posx += labelWidth;
-                    property.FindPropertyRelative("z").boolValue = EditorGUI.Toggle(
-                        new Rect(posx, position.y, fieldWidth, position.height), property.FindPropertyRelative("z").boolValue);
-                    posx += fieldWidth;
-
-                    EditorGUI.indentLevel = indent;
-
-
-
-                    newPosition.y -= lineHeight;
-                    //newPosition.width = 
-
-                });
-            }
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            return base.GetPropertyHeight(property, label) + bottomSpacing;
         }
     }
 }

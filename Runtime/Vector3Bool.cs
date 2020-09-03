@@ -5,7 +5,7 @@ using UnityEngine;
 namespace REXTools.TransformTools
 {
     [System.Serializable]
-    public class Vector3Bool
+    public struct Vector3Bool
     {
         public bool x;
         public bool y;
@@ -19,7 +19,22 @@ namespace REXTools.TransformTools
             }
         }
 
-        public Vector3Bool (bool x, bool y, bool z)
+        public bool anyTrue
+        {
+            get
+            {
+                return x || y || z;
+            }
+        }
+        public bool anyFalse
+        {
+            get
+            {
+                return !x || !y || !z;
+            }
+        }
+        
+        public Vector3Bool (bool x = false, bool y = false, bool z = false)
         {
             this.x = x;
             this.y = y;
@@ -101,5 +116,10 @@ namespace REXTools.TransformTools
 
             return default;
         }
+
+
+
+        public static readonly Vector3Bool truthy = new Vector3Bool(true, true, true);
+        public static readonly Vector3Bool falsey = new Vector3Bool(false, false, false);
     }
 }

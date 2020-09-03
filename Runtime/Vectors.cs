@@ -317,6 +317,32 @@ namespace REXTools.TransformTools
             return new Vector2Int(a.x / b.x, a.y / b.y);
         }
 
+        public static Vector3 Round(this Vector3 a)
+        {
+            return new Vector3(Mathf.Round(a.x), Mathf.Round(a.y), Mathf.Round(a.z));
+        }
+        public static Vector2 Round(this Vector2 a)
+        {
+            return new Vector2(Mathf.Round(a.x), Mathf.Round(a.y));
+        }
+        public static Vector3 Ceil(this Vector3 a)
+        {
+            return new Vector3(Mathf.Ceil(a.x), Mathf.Ceil(a.y), Mathf.Ceil(a.z));
+        }
+        public static Vector2 Ceil(this Vector2 a)
+        {
+            return new Vector2(Mathf.Ceil(a.x), Mathf.Ceil(a.y));
+        }
+        public static Vector3 Floor(this Vector3 a)
+        {
+            return new Vector3(Mathf.Floor(a.x), Mathf.Floor(a.y), Mathf.Floor(a.z));
+        }
+        public static Vector2 Floor(this Vector2 a)
+        {
+            return new Vector2(Mathf.Floor(a.x), Mathf.Floor(a.y));
+        }
+
+
         public static Vector3 Reciprocol(this Vector3 a)
         {
             return new Vector3(1f / a.x, 1f / a.y, 1f / a.z);
@@ -352,7 +378,9 @@ namespace REXTools.TransformTools
             return CustomRoundVector3(f, increment, Vector3.zero);
         }
 
-        //special
+        //SPECIAL
+
+        //plane raycasting
         public static Vector3? OnPlane(Ray ray, Vector3 planePosition, Vector3 planeNormal)
         {
             planeNormal = planeNormal.normalized;
@@ -361,7 +389,7 @@ namespace REXTools.TransformTools
 
             float distance;
 
-            if (plane.Raycast(ray, out distance))
+            if (!(!plane.Raycast(ray, out distance) && distance == 0f))
             {
                 return ray.GetPoint(distance);
             }
@@ -379,7 +407,7 @@ namespace REXTools.TransformTools
         {
             float distance;
 
-            if (plane.Raycast(ray, out distance))
+            if (!(!plane.Raycast(ray, out distance) && distance == 0f))
             {
                 return ray.GetPoint(distance);
             }
@@ -393,7 +421,7 @@ namespace REXTools.TransformTools
         {
             float distance;
 
-            if (plane.Raycast(ray, out distance))
+            if (!(!plane.Raycast(ray, out distance) && distance == 0f))
             {
                 set = ray.GetPoint(distance);
                 return true;
@@ -405,50 +433,41 @@ namespace REXTools.TransformTools
             }
         }
 
-
         //returns a DIRECTION, 
         //used for top down movement with dynamic camera (only Y, Z rotation influence)
         //(X is always the same)
-        public static Vector3 Vector2OntoPlane (Vector2 direction, Vector3 planeNormal, Quaternion cameraRotation)
+        public static Vector3 Vector2OntoPlane (Vector2 direction, Vector3 planeNormal, Quaternion view)
         {
             Plane plane = new Plane(planeNormal, Vector3.zero);
             
-            Vector3 up = plane.ClosestPointOnPlane(cameraRotation * Vector3.up).normalized;
+            Vector3 up = plane.ClosestPointOnPlane(view * Vector3.up).normalized;
             if (up == Vector3.zero)
             {
-                up = plane.ClosestPointOnPlane(cameraRotation * Quaternion.Euler(Vector3.right) * Vector3.up).normalized;
-            }
-            Vector3 right = plane.ClosestPointOnPlane(cameraRotation * Vector3.right).normalized;
-            if (right == Vector3.zero)
-            {
-                up = plane.ClosestPointOnPlane(cameraRotation * Quaternion.Euler(Vector3.forward) * Vector3.up).normalized;
+                up = plane.ClosestPointOnPlane(view * Quaternion.Euler(Vector3.right) * Vector3.up).normalized;
             }
 
-            //returns forward direction given right and up
-            return (Quaternion.LookRotation(right, up) * Quaternion.Euler(Vector3.up * -90f)) * direction;
+            return Quaternion.LookRotation(-planeNormal, up) * direction;
         }
-
-        public static Vector3 Vector2OntoPlane(Vector2 direction, Vector3 planeNormal, Quaternion cameraRotation, Vector3 snap)
+        public static Vector3 Vector2OntoPlane(Vector2 direction, Vector3 planeNormal, Quaternion view, Vector3 snapDirection, int count = 4)
         {
             Plane plane = new Plane(planeNormal, Vector3.zero);
-
-            snap = plane.ClosestPointOnPlane(snap).normalized;
-            List<Vector3> snapDirections = new List<Vector3>{
-                snap,
-                -snap,
-                Quaternion.LookRotation(planeNormal, snap) * Vector3.right,
-                Quaternion.LookRotation(planeNormal, snap) * Vector3.left
-            };
-
-            Vector3 up = plane.ClosestPointOnPlane(cameraRotation * Vector3.up).normalized;
+            
+            count = (int)Mathf.Clamp(count, 1, Mathf.Infinity);
+            snapDirection = plane.ClosestPointOnPlane(snapDirection).normalized;
+            
+            Vector3 up = plane.ClosestPointOnPlane(view * Vector3.up).normalized;
             if (up == Vector3.zero)
             {
-                up = plane.ClosestPointOnPlane(cameraRotation * Quaternion.Euler(Vector3.right) * Vector3.up).normalized;
+                up = plane.ClosestPointOnPlane(view * Quaternion.Euler(Vector3.right) * Vector3.up).normalized;
             }
-            Vector3 right = plane.ClosestPointOnPlane(cameraRotation * Vector3.right).normalized;
-            if (right == Vector3.zero)
+
+            List<Vector3> snapDirections = new List<Vector3>();
+            for (int i = 0; i < count; i++)
             {
-                up = plane.ClosestPointOnPlane(cameraRotation * Quaternion.Euler(Vector3.forward) * Vector3.up).normalized;
+                Quaternion newDirection = Quaternion.LookRotation(planeNormal, snapDirection);
+                newDirection.eulerAngles = newDirection.eulerAngles.SetAxis(Axis.Z, newDirection.eulerAngles.z + ((360f / count) * i));
+
+                snapDirections.Add(newDirection * Vector3.up);
             }
 
             up = snapDirections.Aggregate((dir, newDir) => {
@@ -460,8 +479,26 @@ namespace REXTools.TransformTools
                     return dir;
                 }
             });
-            right = snapDirections.Aggregate((dir, newDir) => {
-                if (Vector3.Angle(right, newDir) < Vector3.Angle(right, dir))
+            
+            return Quaternion.LookRotation(-planeNormal, up) * direction;
+        }
+        public static Vector3 Vector2OntoPlane(Vector2 direction, Vector3 planeNormal, Quaternion view, Vector3[] snapDirections)
+        {
+            Plane plane = new Plane(planeNormal, Vector3.zero);
+
+            for (int i = 0; i < snapDirections.Length; i++)
+            {
+                snapDirections[i] = plane.ClosestPointOnPlane(snapDirections[i]).normalized;
+            }
+
+            Vector3 up = plane.ClosestPointOnPlane(view * Vector3.up).normalized;
+            if (up == Vector3.zero)
+            {
+                up = plane.ClosestPointOnPlane(view * Quaternion.Euler(Vector3.right) * Vector3.up).normalized;
+            }
+
+            up = snapDirections.Aggregate((dir, newDir) => {
+                if (Vector3.Angle(up, newDir) < Vector3.Angle(up, dir))
                 {
                     return newDir;
                 }
@@ -470,11 +507,8 @@ namespace REXTools.TransformTools
                     return dir;
                 }
             });
-            
-            Quaternion finalRotation = (Quaternion.LookRotation(right, up) * Quaternion.Euler(Vector3.up * -90f));
-            
-            //returns forward direction given right and up
-            return finalRotation * direction;
+
+            return Quaternion.LookRotation(-planeNormal, up) * direction;
         }
 
         //END
