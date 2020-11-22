@@ -4,11 +4,8 @@ using UnityEngine;
 namespace REXTools.TransformTools
 {
     [System.Serializable]
-    public struct Vector2Bool
+    public class Vector2Bool : Vector2T<bool>
     {
-        public bool x;
-        public bool y;
-
         public Vector2Bool invert
         {
             get
@@ -43,66 +40,6 @@ namespace REXTools.TransformTools
             this.x = vector3Bool.x;
             this.y = vector3Bool.y;
         }
-
-        public Vector2Bool OperateBool(System.Func<Axis, bool, bool> operation)
-        {
-            return new Vector2Bool(
-                operation(Axis.X, x),
-                operation(Axis.Y, y)
-            );
-        }
-        public Vector2Bool OperateBool(Vector2Bool b, System.Func<Axis, bool, bool, bool> operation)
-        {
-            return new Vector2Bool(
-                operation(Axis.X, x, b.x),
-                operation(Axis.Y, y, b.y)
-            );
-        }
-
-        public Vector2 Operate(System.Func<Axis, bool, float> operation)
-        {
-            return new Vector2(
-                operation(Axis.X, x),
-                operation(Axis.Y, y)
-            );
-        }
-        public Vector2 Operate(Vector2Bool b, System.Func<Axis, bool, bool, float> operation)
-        {
-            return new Vector2(
-                operation(Axis.X, x, b.x),
-                operation(Axis.Y, y, b.y)
-            );
-        }
-
-
-        public bool GetAxis(Axis axis)
-        {
-            if (axis == Axis.X)
-            {
-                return x;
-            }
-            else if (axis == Axis.Y)
-            {
-                return y;
-            }
-
-            return default;
-        }
-
-        public Vector2Bool SetAxis(Axis axis, bool value)
-        {
-            if (axis == Axis.X)
-            {
-                return new Vector2Bool(value, y);
-            }
-            else if (axis == Axis.Y)
-            {
-                return new Vector2Bool(x, value);
-            }
-
-            return default;
-        }
-
 
 
         public static readonly Vector2Bool truthy = new Vector2Bool(true, true);
