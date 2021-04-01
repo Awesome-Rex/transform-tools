@@ -17,6 +17,13 @@ namespace REXTools.TransformTools
             }
         }
 
+        public Vector3Int(Vector3T<int> vector)
+        {
+            this.x = vector.x;
+            this.y = vector.y;
+            this.z = vector.z;
+        }
+
         public Vector3Int(int x = 0, int y = 0, int z = 0)
         {
             this.x = x;

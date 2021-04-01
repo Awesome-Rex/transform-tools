@@ -30,6 +30,13 @@ namespace REXTools.TransformTools
             }
         }
         
+        public Vector3Bool (Vector3T<bool> vector)
+        {
+            this.x = vector.x;
+            this.y = vector.y;
+            this.z = vector.z;
+        }
+
         public Vector3Bool (bool x = false, bool y = false, bool z = false)
         {
             this.x = x;

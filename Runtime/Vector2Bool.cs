@@ -29,6 +29,12 @@ namespace REXTools.TransformTools
             }
         }
 
+        public Vector2Bool(Vector2T<bool> vector)
+        {
+            this.x = vector.x;
+            this.y = vector.y;
+        }
+
         public Vector2Bool(bool x = false, bool y = false)
         {
             this.x = x;

@@ -17,7 +17,13 @@ namespace REXTools.TransformTools
             }
         }
 
-        public Vector2Int(int x = 0, int y = 0, int z = 0)
+        public Vector2Int(Vector2T<int> vector)
+        {
+            this.x = vector.x;
+            this.y = vector.y;
+        }
+
+        public Vector2Int(int x = 0, int y = 0)
         {
             this.x = x;
             this.y = y;

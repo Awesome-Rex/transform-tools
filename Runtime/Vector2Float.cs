@@ -15,6 +15,12 @@ namespace REXTools.TransformTools
             }
         }
 
+        public Vector2Float(Vector2T<float> vector)
+        {
+            this.x = vector.x;
+            this.y = vector.y;
+        }
+
         public Vector2Float(float x = 0, float y = 0)
         {
             this.x = x;

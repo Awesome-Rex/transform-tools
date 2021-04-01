@@ -116,5 +116,21 @@ namespace REXTools.TransformTools
 
             return default;
         }
+
+
+        public T[] ToArray()
+        {
+            return new T[]{
+                x,
+                y
+            };
+        }
+        public List<T> ToList()
+        {
+            return new List<T>{
+                x,
+                y
+            };
+        }
     }
 }

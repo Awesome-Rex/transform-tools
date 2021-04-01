@@ -15,6 +15,13 @@ namespace REXTools.TransformTools
             }
         }
 
+        public Vector3Float(Vector3T<float> vector)
+        {
+            this.x = vector.x;
+            this.y = vector.y;
+            this.z = vector.z;
+        }
+
         public Vector3Float(float x = 0, float y = 0, float z = 0)
         {
             this.x = x;
