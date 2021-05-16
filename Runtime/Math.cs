@@ -5,7 +5,8 @@ using System.Linq;
 
 namespace REXTools.TransformTools
 {
-    public enum AverageType { Least, Greatest, Mean, Median, Range, MidRange }
+    public enum Sign { Neutral, Positive, Negative }
+    public enum AverageType { Least, Greatest, Mean, Median, Mode, Range, MidRange }
 
     public static class RMath
     {
@@ -225,6 +226,23 @@ namespace REXTools.TransformTools
                         ) / 2f;
                 }
             }
+            else if (averageType == AverageType.Mode)
+            {
+                Dictionary<float, int> ocurrances = new Dictionary<float, int>();
+
+                foreach (T i in list)
+                {
+                    if (ocurrances.ContainsKey(property(i)))
+                    {
+                        ocurrances[property(i)] = ocurrances[property(i)] + 1;
+                    } else
+                    {
+                        ocurrances[property(i)] = 1;
+                    }
+                }
+
+                return list.Max((f) => ocurrances[property(f)]);
+            }
             else if (averageType == AverageType.Range)
             {
                 return list.Max(property) - list.Min(property);
@@ -248,6 +266,57 @@ namespace REXTools.TransformTools
         }
         public static float GetAverage(this float[] list, AverageType averageType = AverageType.Mean) {
             return list.ToList().GetAverage(num => num, averageType);
+        }
+
+
+        //Enum extension methods
+        public static int ToInt(this Sign sign)
+        {
+            if (sign == Sign.Positive)
+            {
+                return 1;
+            }
+            else if (sign == Sign.Negative)
+            {
+                return -1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        public static float ToFloat(this Sign sign)
+        {
+            if (sign == Sign.Positive)
+            {
+                return 1f;
+            }
+            else if (sign == Sign.Negative)
+            {
+                return -1f;
+            }
+            else
+            {
+                return 0f;
+            }
+        }
+
+        public static Sign Negative (this Sign sign)
+        {
+            if (sign == Sign.Positive)
+            {
+                return Sign.Negative;
+            }
+            else if (sign == Sign.Negative)
+            {
+                return Sign.Positive;
+            }
+            else if (sign == Sign.Neutral)
+            {
+                return Sign.Neutral;
+            }
+
+            return default;
         }
     }
 }

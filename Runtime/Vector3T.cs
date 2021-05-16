@@ -11,6 +11,17 @@ namespace REXTools.TransformTools
         public T y;
         public T z;
 
+        public override bool Equals (object obj)
+        {
+            return ((Vector3T<T>)obj).x.Equals(x) && ((Vector3T<T>)obj).y.Equals(y) && ((Vector3T<T>)obj).z.Equals(z);
+        }
+
+        public override int GetHashCode()
+        {
+            //return base.GetHashCode();
+            return int.Parse(x.GetHashCode().ToString() + y.GetHashCode().ToString() + z.GetHashCode().ToString());
+        }
+
         public Vector3T(T x = default, T y = default, T z = default)
         {
             this.x = x;
@@ -137,6 +148,10 @@ namespace REXTools.TransformTools
             return default;
         }
 
+        public override string ToString()
+        {
+            return "(" + x.ToString() + ", " + y.ToString() + ", " + z.ToString() + ")";
+        }
 
         public T[] ToArray()
         {
